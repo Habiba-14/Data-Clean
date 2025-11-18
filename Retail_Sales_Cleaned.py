@@ -6,7 +6,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # file_path is a string variable that holds the name of the Excel workbook.Prevent typing it out four times.It does not open or read the actual file.
-file_path = "/Users/instabug/Downloads/salma/EG_Retail_Sales_Raw_CaseStudy 1.xlsx"
+file_path = "/Users/salmaabdelkader/PycharmProjects/RetailCaseStudy/EG_Retail_Sales_Raw_CaseStudy 1.xlsx"
 
 # Read all sheets into a dictionary. You point to the Excel file you uploaded
 all_sheets = pd.read_excel(file_path, sheet_name=None)
@@ -255,99 +255,27 @@ print("--- Phone Column Preview ---")
 print(sales['Phone'].value_counts(dropna=False).head(20))
 
 # Get a count of the null values
-print(f"\nNumber of null Phone values: {sales['Phone'].isnull().sum()}")
-
-# Clean and standardize phone numbers to Egyptian format
-def clean_phone(phone):
-    """
-    Standardizes phone numbers to Egyptian format: +20XXXXXXXXXX
-    Egyptian mobile: 11 digits starting with 01
-    """
-    if pd.isna(phone):
-        return np.nan
-    phone = str(phone).strip()
-    # Remove all non-digits
-    phone = re.sub(r'[^0-9]', '', phone)
-    
-    # Egyptian phone: 11 digits starting with 01
-    if len(phone) == 11 and phone.startswith('01'):
-        return f'+20{phone}'
-    # Or 10 digits starting with 1
-    elif len(phone) == 10 and phone.startswith('1'):
-        return f'+20{phone}'
-    else:
-        return np.nan  # Invalid format
-
-sales['Phone_Clean'] = sales['Phone'].apply(clean_phone)
-sales['phone_is_valid'] = sales['Phone_Clean'].notna()
-
-print("\n--- Phone After Cleaning ---")
-print(f"Valid phones: {sales['phone_is_valid'].sum()}")
-print(f"Invalid phones: {(~sales['phone_is_valid']).sum()}")
-print(sales['Phone_Clean'].value_counts(dropna=False).head(10))
+#print(f"\nNumber of null Phone values: {sales['Phone'].isnull().sum()}")
 
 
 # -------------------------------------------------------------------------
 #  Email Handling and Cleaning:
 # -------------------------------------------------------------------------
-print("\n--- Email Column Preview ---")
-print(sales['Email'].value_counts(dropna=False).head(20))
-print(f"\nNumber of null Email values: {sales['Email'].isnull().sum()}")
-
-# Validate and clean email addresses
-def validate_email(email):
-    """
-    Validates email format using regex
-    Returns NaN for invalid emails (including those with Arabic characters)
-    """
-    if pd.isna(email):
-        return np.nan
-    email = str(email).strip().lower()
-    
-    # Remove emails with Arabic characters
-    if bool(re.search(r'[\u0600-\u06FF]', email)):
-        return np.nan
-    
-    # Basic email regex: something@domain.ext
-    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    if re.match(pattern, email):
-        return email
-    return np.nan
-
-sales['Email_Clean'] = sales['Email'].apply(validate_email)
-sales['email_is_valid'] = sales['Email_Clean'].notna()
-
-print("\n--- Email After Cleaning ---")
-print(f"Valid emails: {sales['email_is_valid'].sum()}")
-print(f"Invalid emails: {(~sales['email_is_valid']).sum()}")
-print(sales['Email_Clean'].value_counts(dropna=False).head(10))
 
 # -------------------------------------------------------------------------
 #  CustomerId Handling and Cleaning:
 # -------------------------------------------------------------------------
 # Get a preview of existing CustomerID formats
-print("--- CustomerID Value Counts (Initial) ---")
-print(sales['CustomerID'].value_counts(dropna=False).head(10))
-print(f"\nNumber of null CustomerID values: {sales['CustomerID'].isnull().sum()}")
+#print("--- CustomerID Value Counts (Initial) ---")
+#print(sales['CustomerID'].value_counts(dropna=False).head(10))
 
-# Standardize CustomerID format
-def clean_customer_id(cust_id):
-    """
-    Standardizes CustomerID format: uppercase, remove "CUS-" prefix variations
-    Target format: C + number (e.g., C001, C100)
-    """
-    if pd.isna(cust_id):
-        return np.nan
-    cust_id = str(cust_id).upper().strip()
-    # Standardize format: remove "CUS-" prefix, keep just C prefix
-    cust_id = cust_id.replace('CUS-', 'C').replace('CUS', 'C')
-    return cust_id
-
-sales['CustomerID_clean'] = sales['CustomerID'].apply(clean_customer_id)
+#sales['CustomerID_clean'] = sales['CustomerID'].astype(str).str.replace('CUS-', 'C', regex=False)
 
 # Get a preview of standardized CustomerID formats
-print("\n--- CustomerID Value Counts (Standardized) ---")
-print(sales['CustomerID_clean'].value_counts(dropna=False).head(20))
+# For this case, we will focus on standardizing the whole ID
+#checking mashya sah wala eh
+#print("\n--- CustomerID Value Counts (Standardized) ---")
+#print(sales['CustomerID_clean'].value_counts(dropna=False).head(20))
 
 
 # -------------------------------------------------------------------------
@@ -1300,12 +1228,10 @@ bi_columns = [
     'OrderID_cleaned',
     'OrderDate','Order_Year','Order_Month','Order_Quarter','Order_YearMonth',
     'DeliveryDate','Delivery_Time_Days','Delivery_Delayed',
-    'CustomerID_clean','CustomerName_clean','Gender_Clean',
-    'Governorate_Clean','City',
     'ProductSKU_Clean','ProductName_Clean','Category_Clean',
-    'Quantity_Clean','UnitPrice_EGP_capped',
     'Subtotal_Calc_Capped','Discount_Rate_Clean','ShippingCost_Filled','TotalAmount_Calc',
-    'PaymentStatus_Clean','PaymentMethod_Clean','Channel_Clean','Status_Clean','ShipperName_Clean'
+    'PaymentStatus_Clean','PaymentMethod_Clean'
+
 ]
 
 bi_sales = sales[bi_columns]
@@ -1315,73 +1241,5 @@ print("Shape:", bi_sales.shape)
 print("Columns:", bi_sales.columns.tolist())
 
 # Save file
-output_path = "/Users/instabug/Downloads/salma/BI_Ready_Sales_Dataset.xlsx"
+output_path = "/Users/salmaabdelkader/PycharmProjects/RetailCaseStudy/BI_Ready_Sales_Dataset.xlsx"
 bi_sales.to_excel(output_path, index=False)
-print(f"BI-Ready dataset saved to: {output_path}")
-
-# ============================================
-# DATA QUALITY VALIDATION SUMMARY
-# ============================================
-
-print("\n" + "="*60)
-print("DATA QUALITY VALIDATION SUMMARY")
-print("="*60)
-
-# 1. Uniqueness Check
-print(f"\n1. UNIQUENESS:")
-print(f"   Unique OrderID_cleaned: {sales['OrderID_cleaned'].nunique()}")
-print(f"   Total rows: {len(sales)}")
-print(f"   100% unique: {sales['OrderID_cleaned'].nunique() == len(sales)}")
-print(f"   Original duplicated OrderIDs: {sales['is_OrderID_duplicated_flag'].sum()}")
-
-# 2. Completeness Check
-print(f"\n2. COMPLETENESS (Critical Fields):")
-print(f"   OrderDate nulls: {sales['OrderDate'].isnull().sum()} ({sales['OrderDate'].isnull().sum()/len(sales)*100:.1f}%)")
-print(f"   ProductSKU_Clean nulls: {sales['ProductSKU_Clean'].isnull().sum()} ({sales['ProductSKU_Clean'].isnull().sum()/len(sales)*100:.1f}%)")
-print(f"   TotalAmount_Calc nulls: {sales['TotalAmount_Calc'].isnull().sum()} ({sales['TotalAmount_Calc'].isnull().sum()/len(sales)*100:.1f}%)")
-print(f"   Quantity_Clean nulls: {sales['Quantity_Clean'].isnull().sum()} ({sales['Quantity_Clean'].isnull().sum()/len(sales)*100:.1f}%)")
-
-# 3. Accuracy Check
-print(f"\n3. ACCURACY (Calculations):")
-subtotal_test = (sales['UnitPrice_EGP_capped'] * sales['Quantity_Clean'] - sales['Subtotal_Calc_Capped']).abs().sum()
-print(f"   Subtotal calculation diff: {subtotal_test:.2f} (should be ~0)")
-print(f"   Records with invalid dates: {sales['delivery_is_before_order'].sum()}")
-
-# 4. Validity Check
-print(f"\n4. VALIDITY (Business Rules):")
-print(f"   Negative/Zero quantities (now NaN): {(sales['Quantity_Clean'] <= 0).sum()}")
-print(f"   Delivery before order: {sales['delivery_is_before_order'].sum()}")
-print(f"   Discount rate > 1: {(sales['Discount_Rate_Clean'] > 1).sum()}")
-print(f"   Extreme TotalAmount (flagged): {sales['TotalAmount_Extreme'].sum()}")
-
-# 5. Consistency Check
-print(f"\n5. CONSISTENCY (Standardization):")
-print(f"   Governorate variations: {sales['Governorate_Clean'].nunique()} (expected ~12-13)")
-print(f"   Currency values: {list(sales['Currency_Clean'].unique())}")
-print(f"   Gender values: {list(sales['Gender_Clean'].unique())}")
-print(f"   ReturnFlag values: {list(sales['ReturnFlag_Clean'].unique())}")
-
-# 6. Contact Information Quality
-print(f"\n6. CONTACT INFORMATION:")
-print(f"   Valid phones: {sales['phone_is_valid'].sum()} ({sales['phone_is_valid'].sum()/len(sales)*100:.1f}%)")
-print(f"   Invalid phones: {(~sales['phone_is_valid']).sum()} ({(~sales['phone_is_valid']).sum()/len(sales)*100:.1f}%)")
-print(f"   Valid emails: {sales['email_is_valid'].sum()} ({sales['email_is_valid'].sum()/len(sales)*100:.1f}%)")
-print(f"   Invalid emails: {(~sales['email_is_valid']).sum()} ({(~sales['email_is_valid']).sum()/len(sales)*100:.1f}%)")
-
-# 7. Geographic Data Quality
-print(f"\n7. GEOGRAPHIC DATA:")
-print(f"   Valid coordinates: {(sales['investigation_flag'] == 'Valid').sum()}")
-print(f"   Imputed coordinates: {(sales['investigation_flag'] == 'Imputed_by_Location').sum()}")
-print(f"   Still missing: {(sales['investigation_flag'] == 'Needs_Further_Investigation/Unknown').sum()}")
-print(f"   Manually swapped: {(sales['investigation_flag'] == 'Manually Swapped').sum()}")
-
-# 8. Data Quality Score Summary
-print(f"\n8. OVERALL DATA QUALITY:")
-completeness_score = (1 - sales[['OrderDate', 'ProductSKU_Clean', 'TotalAmount_Calc']].isnull().mean().mean()) * 100
-print(f"   Completeness Score (critical fields): {completeness_score:.1f}%")
-print(f"   Total records processed: {len(sales)}")
-print(f"   Total columns in BI dataset: {len(bi_columns)}")
-
-print("\n" + "="*60)
-print("Validation complete! Check flags for rows requiring investigation.")
-print("="*60 + "\n")
